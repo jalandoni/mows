@@ -2,82 +2,73 @@
 
 
 $(document).ready(function () {
-    var subscribe = true;
-    var connected = true;
-
-   var address =$("#address").val();
+    var topicSubscribed = [];
+    var client;
+    var address = $("#address").val();
     client = mqtt.connect(address);
-    
+
+   
+
+
+
+    //connect
     $("#btn-connect").click(function () {
-        connected=true;
-        
-      
+        connected = true;
         client.on("connect", function () {
             console.log("successfully connected!")
         })
         $("#status").val("connected")
-        
+        client.on("message", function (topic, payload) {
+        console.log([topic, payload].join(": "));
+            $('#tbodyB').append('<tr><td>' + topic + '<td>' + payload + '<td>'+moment().format('MMMM Do YYYY, h:mm:ss a') + '</td></tr>');
 
-
-
-        $("#btnPublish").click(function(){
-            var topic =$("input[name=topic]").val();
-            var payload=$("input[name=payload]").val();
-                client.publish(topic,payload)
-                var info ='<tr><td>'+ topic+'<td><td>'+payload+'</td><td>'+moment().format('MMMM Do YYYY, h:mm:ss a')+'</td></tr>'
-                $('#tbody1').append(info);
-            })
-            
-
-        });
-
-        $("#btnUnsubscribe").click(function(){
-            subscribe  = false;
-        });
-
-        $("#btnDisconnect").click(function(){
-            client.end()
-        });
-
-
-
-
-
-        $("#btnSubscribe").click(function(){
-            subscribe  = true;
-            var topic =$("input[name=topic]").val();
-            var payload =$("input[name=payload]").val();
-            var topicS=$("input[name=topicS]").val();
-            client.subscribe(topic);
-            if(topicS==topic){
-                
-                $('#tbody2').append('<tr><td>'+ topic+'<td><td>'+'</td><td>'+moment().format('MMMM Do YYYY, h:mm:ss a')+'</td></tr>');
-                $('#tbodyB').append('<tr><td>'+ topic+'<td><td>'+payload+'</td><td>'+moment().format('MMMM Do YYYY, h:mm:ss a')+'</td></tr>');
-                client.on("message", function (topic, payload) {
-                console.log([topic, payload].join(": "))
-                
-            });
-            } else {
-                $('#tbody2').append('<tr><td>'+ topicS+'<td><td>'+moment().format('MMMM Do YYYY, h:mm:ss a')+'</td></tr>');
-
-            }
-            
-            
-
-          
-
-
-        
-
-
-
-     
-       
-
-    });
+        })
 
 
   
+
+    //publish
+    $("#btnPublish").click(function () {
+        var topic = $("input[name=topic]").val();
+        var payload = $("input[name=payload]").val();
+        client.publish(topic, payload)
+        $('#tbody1').append('<tr><td>' + topic + '<td>' + payload + '<td>'+moment().format('MMMM Do YYYY, h:mm:ss a') + '</td></tr>');
+
+    })
+
+
+
+
+
+    //Subscribe
+    $("#btnSubscribe").click(function () {
+        var topicSubscribe = $("input[name=topicSubscribe]").val();            
+        console.log(topicSubscribe);
+        topicSubscribed.push(topicSubscribe);
+        $('#tbody2').append('<tr><td>' + topicSubscribe + '<td>'+moment().format('MMMM Do YYYY, h:mm:ss a') + '</td></tr>');
+        client.subscribe(topicSubscribe); 
+    
+       
+    });
+
+        //unsubscribe
+     $("#btn-Unsubscribe").click(function () {
+       var topicSubscribe = $("input[name=topicSubscribe]").val();
+       topicSubscribed.splice(topicSubscribed.indexOf(topicSubscribe),topicSubscribed.indexOf(topicSubscribe)+1);
+       client.unsubscribe(topicSubscribe);
+       
+    });
+
+
+});
+
+        //Disconnected
+    $("#btn-disconnect").click(function () {
+        client.end();
+        document.getElementById("btnSubscribe").disabled = true;
+        $("#status").val("disconnected");
+  
+    });
 
 })
 
